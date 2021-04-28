@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <!-- set styles on the top -->
+    <style>
+        .chart-container {
+            max-width: 1050px;
+            margin: 0 auto;
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        svg {
+            overflow: visible;
+        }
+
+        h1 {
+            margin: 0 auto;
+        }
+
+        .x .tick line {
+            stroke: rgba(0, 0, 0, .2);
+        }
+
+        .y .tick line {
+            stroke: rgba(0, 0, 0, 0.295);
+            stroke-dasharray: 1,4;
+            stroke-width: 1px;
+            opacity: 1;
+        }
+
+        .x .domain {
+            display: none;
+        }
+
+        .y .domain {
+            display: none;
+        }
+
+        .y .tick text {
+            font-size: 0;
+            fill: #333;
+
+        }
+
+        .x .tick text {
+            font-size: 10px;
+            fill: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chart-container">
+        <h1 class="headline">
+            Unemployment Claims
+        </h1>
+
+        <svg width="1050px" height="1000px">
+
+        </svg>
+    </div>
+</body>
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<!-- we're using d3 version 6 (the latest version) for all out work -->
+
+<script>
+
+    let width = 800;
+    let height = 500;
+
+
+    var parseTime = d3.timeParse("%d-%b-%y");
+
+
+    let svg = d3.select("body")
+        .select("svg")
+
+    d3.csv("nat.csv").then(function (data) {
+
+        data.forEach(function (row) {
+            row.date = new Date( row.end + "T00:00")
+            row.value = +row.value
+        })
+
+        console.log(data)
+
+        let margin = { top: 30, right: 10, bottom: 10, left: 30 };
+
+        let x = d3.scaleTime()
+            .domain(d3.extent(data.map(function (d) { return d.date }))) //d3 extent
+            .range([margin.left, width - margin.right])
+
+        let y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .range([height - margin.bottom, margin.top])
+
+
+        let yAxisSettings = d3.axisLeft(y) 
+            .ticks(6)
+            // .tickValues([20000, 40000, 60000]) //can define your own ticks
+            .tickSize(-width) //size of tick lines
+            .tickFormat(d3.formatPrefix(".1", 1e6))
+            .tickPadding(10)
+
+        let xAxisSettings = d3.axisBottom(x)
+            .ticks(8)
+            .tickSize(10)
+            .tickPadding(10)
+
+
+        let bg = svg.append("rect")
+            .attr("x", margin.left)
+            .attr("y", 0)
+            .attr("width", width)
+            .attr("height", height)
+            .style("fill", "white")
+
+        let xAxisTicks = svg.append("g")
+            .attr("class", "x axis")
+            .call(xAxisSettings)
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+
+        let yAxisTicks = svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxisSettings)
+            .attr("transform", `translate(${margin.left},0)`)
+
+        //https://github.com/d3/d3-shape#areas
+        let area = d3.area() 
+            .defined(d => !isNaN(d.value))
+            .x(function (d) { return x(d.date) }) //accessing date 
+            .y0(y(0)) //accesssing at baseline
+            .y1(function (d) { return y(d.value) }) //accesssing value 
+
+
+        let line_path = svg.append("path") 
+            .attr("class", "area") 
+            .attr("d", area(data))
+            .style("fill", "#f85c1e")
+            .style("stroke", "none")
+            .style("fill-opacity", ".85")
+
+
+
+        // let orangeline = svg.append("line") // try converting to a bar 
+        //     .attr("x1", x(d3.max(data, function(d) { return d.date }))+5)  
+        //     .attr("x2", x(d3.max(data, function(d) { return d.date }))+5)
+        //     .attr("y1", y(0))  
+        //     .attr("y2", y(d3.max(data, function(d) { return d.value })))
+        //     .style("stroke-width", 2)
+        //     .style("stroke", "#f85c1e")
+        //     .style("opacity", ".85")
+        //     .style("fill", "none")
+
+
+        let orangebar = svg.append("rect") 
+            .attr("x", x(d3.max(data, function(d) { return d.date }))+4)  
+            .attr("y", y(d3.max(data, function(d) { return d.value })))  
+            .attr("height", height-y(d3.max(data, function(d) { return d.value }))-10)
+            .attr("width", 3)
+            .style("opacity", ".9")
+            .style("fill", "#f85c1e")
+
+        let greybar = svg.append("rect") 
+            .attr("x", x(new Date("2007-12-29" + "T00:00")))//"Sat Dec 29 2007 00:00:00 GMT-0600 (Central Standard Time)")
+            .attr("y", 0)  
+            .attr("height", height-10)
+            .attr("width", x(new Date("2009-06-27" + "T00:00")) - x(new Date("2007-12-29" + "T00:00")) )
+            .style("opacity", "1")
+            .style("fill", "rgba(0, 0, 0, 0.06)")
+
+        text = svg.append('text').text('2008 recession')
+            .attr('x', x(new Date("2007-12-29" + "T00:00"))-75)
+            .attr('y', y(600000))
+            .attr('fill', '#333')
+            .attr('font-size', '10px')
+            .attr('font-family', "sans-serif")
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('Note: Official figures are seasonally adjusted. Source: Department of Labor')
+            .attr('x', 35)
+            .attr('y', height+35)
+            .attr('fill', '#999999')
+            .attr('font-size', '10px')
+            .attr('font-family', "sans-serif")
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('Weekly Average: 345,000')
+            .attr('x', width-150)
+            .attr('y', y(345000)-5)
+            .attr('fill', '#333')
+            .attr('font-size', '10px')
+            .attr('font-family', "sans-serif")
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('3,283,000')
+            .attr('x', width-130)
+            .attr('y', y(d3.max(data, function(d) { return d.value })))
+            .attr('fill', '#f85c1e')
+            .attr('font-size', '20px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 200)
+            .attr('font-weight', 'bold')
+
+        text = svg.append('text').text('claims filed last week')
+            .attr('x', width-155)
+            .attr('y', y(d3.max(data, function(d) { return d.value }))+20)
+            .attr('fill', '#f85c1e')
+            .attr('font-size', '15px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('500,000')
+            .attr('x', width+50)
+            .attr('y', y(500000)+5)
+            .attr('fill', '#333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        text = svg.append('text').text('1.0 million')
+            .attr('x', width+50)
+            .attr('y', y(1000000)+5)
+            .attr('fill', '#333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        text = svg.append('text').text('1.5 million')
+            .attr('x', width+50)
+            .attr('y', y(1500000)+5)
+            .attr('fill', '#333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        text = svg.append('text').text('2.0 million')
+            .attr('x', width+50)
+            .attr('y', y(2000000)+5)
+            .attr('fill', '#333333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        text = svg.append('text').text('2.5 million')
+            .attr('x', width+50)
+            .attr('y', y(2500000)+5)
+            .attr('fill', '#333333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        text = svg.append('text').text('3.0 million')
+            .attr('x', width+50)
+            .attr('y', y(3000000)+5)
+            .attr('fill', '#333333')
+            .attr('font-size', '17px')
+            .attr('font-family', "nyt-franklin")
+            .attr('font-weight', 50)
+
+        let solidline = svg.append("line")
+            .attr("x1", margin.left)  
+            .attr("x2", width - margin.right-10)
+            .attr("y1", y(345000))  
+            .attr("y2", y(345000))
+            .style("stroke-width", 0.5)
+            .style("stroke", "black")
+            .style("opacity", "1")
+            .style("fill", "none")
+
+        let xline = svg.append("line")
+            .attr("x1", margin.left)  
+            .attr("x2", width+25)
+            .attr("y1", y(0))  
+            .attr("y2", y(0))
+            .style("stroke-width", 0.7)
+            .style("stroke", "black")
+            .style("opacity", "1")
+            .style("fill", "none")
+
+        let orangecircle = svg.append("circle")
+            .attr("cx", x(d3.max(data, function(d) { return d.date }))+5)  
+            .attr("cy", y(d3.max(data, function(d) { return d.value })))
+            .attr("r", 6)
+            .style("stroke", "white")
+            .style("opacity", "1")
+            .style("fill", "#f85c1e")
+
+        
+
+
+
+    })
+
+</script>
