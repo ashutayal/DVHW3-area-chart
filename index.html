@@ -17,6 +17,7 @@
 
         h1 {
             margin: 0 auto;
+            border: 15px solid white;
         }
 
         .x .tick line {
@@ -54,7 +55,6 @@
 <body>
     <div class="chart-container">
         <h1 class="headline">
-            Unemployment Claims
         </h1>
 
         <svg width="1050px" height="1000px">
@@ -85,7 +85,7 @@
             row.value = +row.value
         })
 
-        console.log(data)
+        console.log({data})
 
         let margin = { top: 30, right: 10, bottom: 10, left: 30 };
 
@@ -197,11 +197,11 @@
             .attr('font-weight', 200)
 
         text = svg.append('text').text('3,283,000')
-            .attr('x', width-130)
+            .attr('x', width-150)
             .attr('y', y(d3.max(data, function(d) { return d.value })))
             .attr('fill', '#f85c1e')
-            .attr('font-size', '20px')
-            .attr('font-family', "nyt-franklin")
+            .attr('font-size', '26px')
+            .attr('font-family', "helvetica")
             .attr('font-weight', 200)
             .attr('font-weight', 'bold')
 
@@ -289,9 +289,71 @@
             .style("opacity", "1")
             .style("fill", "#f85c1e")
 
+        let whitebar = svg.append("rect") 
+            .attr("x", 20)//"Sat Dec 29 2007 00:00:00 GMT-0600 (Central Standard Time)")
+            .attr("y", 0)  
+            .attr("height", 250)
+            .attr("width", 600 )
+            .style("opacity", "1")
+            .style("fill", "white")
+
+        text = svg.append('text').text('More Than 3 Million')
+            .attr('x', 20)
+            .attr('y', 40)
+            .attr('fill', '#333333')
+            .attr('font-size', '3em')
+            .attr('font-family', 'Times New Roman')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('Americans Lost Their Jobs')
+            .attr('x', 20)
+            .attr('y', 88)
+            .attr('fill', '#333333')
+            .attr('font-size', '3em')
+            .attr('font-family', 'Times New Roman')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('Last Week. See Your State.')
+            .attr('x', 20)
+            .attr('y', 136)
+            .attr('fill', '#333333')
+            .attr('font-size', '3em')
+            .attr('font-family', 'Times New Roman')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('Official statistics have revealed how severely coronavirus has')
+            .attr('x', 20)
+            .attr('y', 170)
+            .attr('fill', '#333')
+            .attr('font-size', '21px')
+            .attr('font-family', 'Helvetica')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('hurt the job market. But it may take several months before we')
+            .attr('x', 20)
+            .attr('y', 195)
+            .attr('fill', '#333')
+            .attr('font-size', '21px')
+            .attr('font-family', 'Helvetica')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('know whether this economic disaster will resemble a storm or')
+            .attr('x', 20)
+            .attr('y', 220)
+            .attr('fill', '#333')
+            .attr('font-size', '21px')
+            .attr('font-family', 'Helvetica')
+            .attr('font-weight', 200)
+
+        text = svg.append('text').text('a long winter.')
+            .attr('x', 20)
+            .attr('y', 245)
+            .attr('fill', '#333')
+            .attr('font-size', '21px')
+            .attr('font-family', 'Helvetica')
+            .attr('font-weight', 200)
+
         
-
-
 
     })
 
